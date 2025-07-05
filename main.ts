@@ -50,14 +50,34 @@ async function enhance() {
 
   const p = Deno.run({
     cmd: ["ollama", "run", model, prompt],
-    stdout: "inherit",
+    stdout: "piped",
     stdin: "null",
   });
 
+  const raw = await p.output();
   const status = await p.status();
   if (!status.success) {
     console.error("Ollama process failed");
     Deno.exit(status.code);
+  }
+
+  const message = new TextDecoder().decode(raw).trim();
+
+  try {
+    const pb = Deno.run({ cmd: ["pbcopy"], stdin: "piped" });
+    const encoder = new TextEncoder();
+    await pb.stdin.write(encoder.encode(message));
+    pb.stdin.close();
+    const pbStatus = await pb.status();
+    if (pbStatus.success) {
+      console.log("✅ Commit message copied to clipboard via pbcopy:");
+    } else {
+      console.error("pbcopy failed with code", pbStatus.code);
+      console.log(message);
+    }
+  } catch (e) {
+    console.error("Failed to launch pbcopy:", e);
+    console.log(message);
   }
 }
 
