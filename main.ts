@@ -53,10 +53,12 @@ function parseArgs(): { model: string; intent: string } {
 }
 
 async function getDiff(): Promise<string> {
-  const proc = Deno.run({ cmd: ["git", "diff", "--staged"], stdout: "piped" });
-  const raw = await proc.output();
-  await proc.status();
-  return new TextDecoder().decode(raw);
+  const proc = new Deno.Command("git", {
+    args: ["diff", "--staged"],
+    stdout: "piped",
+  });
+  const { stdout } = await proc.output();
+  return new TextDecoder().decode(stdout);
 }
 
 function buildPrompt(diff: string, intent: string): string {
@@ -64,18 +66,17 @@ function buildPrompt(diff: string, intent: string): string {
 }
 
 async function runOllama(model: string, prompt: string): Promise<string> {
-  const proc = Deno.run({
-    cmd: ["ollama", "run", model, prompt],
+  const proc = new Deno.Command("ollama", {
+    args: ["run", model, prompt],
     stdout: "piped",
     stderr: "inherit",
   });
-  const raw = await proc.output();
-  const status = await proc.status();
-  if (!status.success) {
-    console.error("Ollama process failed with code", status.code);
-    Deno.exit(status.code);
+  const { code, stdout } = await proc.output();
+  if (code !== 0) {
+    console.error("Ollama process failed with code", code);
+    Deno.exit(code);
   }
-  return new TextDecoder().decode(raw).trim();
+  return new TextDecoder().decode(stdout).trim();
 }
 
 async function interactiveCommitFlow(model: string, promptText: string) {
@@ -90,15 +91,15 @@ async function interactiveCommitFlow(model: string, promptText: string) {
 
     if (action === "commit") {
       console.log(`\nExecuting: git commit -m "${message}"\n`);
-      const proc = Deno.run({
-        cmd: ["git", "commit", "-m", message],
+      const proc = new Deno.Command("git", {
+        args: ["git", "commit", "-m", message],
         stdout: "inherit",
         stderr: "inherit",
       });
-      const status = await proc.status();
-      if (!status.success) {
-        console.error("git commit failed with code", status.code);
-        Deno.exit(status.code);
+      const { code } = await proc.output();
+      if (code !== 0) {
+        console.error("git commit failed with code", code);
+        Deno.exit(code);
       }
       break;
     } else if (action === "retry") {
