@@ -1,6 +1,10 @@
 {
+  "name": "@arkgast/commitgenie",
+  "version": "0.0.1",
+  "license": "MIT",
+  "exports": "./src/mod.ts",
   "tasks": {
-    "dev": "deno run --watch main.ts"
+    "start": "deno run --allow-run --allow-read src/mod.ts"
   },
   "imports": {
     "@cliffy/prompt": "jsr:@cliffy/prompt@^1.0.0-rc.8",
