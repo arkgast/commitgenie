@@ -1,5 +1,7 @@
 #!/usr/bin/env -S deno run --allow-run --allow-read
 
+import { Select } from "@cliffy/prompt";
+
 const DEFAULT_MODEL = "deepseek-coder:33b";
 
 const PROMPT_TEMPLATE = `You are an expert software engineer and commit message specialist.
@@ -76,17 +78,33 @@ async function runOllama(model: string, prompt: string): Promise<string> {
   return new TextDecoder().decode(raw).trim();
 }
 
-async function copyToClipboard(text: string): Promise<void> {
-  const proc = Deno.run({ cmd: ["pbcopy"], stdin: "piped" });
-  const encoder = new TextEncoder();
-  await proc.stdin.write(encoder.encode(text));
-  proc.stdin.close();
-  const status = await proc.status();
-  if (status.success) {
-    console.log("✅ Commit message copied to clipboard via pbcopy:");
-  } else {
-    console.error("pbcopy failed with code", status.code);
-    console.log(text);
+async function interactiveCommitFlow(model: string, promptText: string) {
+  while (true) {
+    const message = await runOllama(model, promptText);
+    console.log(`\n💡 Generated commit message:\n${message}\n`);
+    const action = await Select.prompt({
+      message: "What would you like to do?",
+      search: true,
+      options: ["commit", "retry"],
+    });
+
+    if (action === "commit") {
+      console.log(`\nExecuting: git commit -m "${message}"\n`);
+      const proc = Deno.run({
+        cmd: ["git", "commit", "-m", message],
+        stdout: "inherit",
+        stderr: "inherit",
+      });
+      const status = await proc.status();
+      if (!status.success) {
+        console.error("git commit failed with code", status.code);
+        Deno.exit(status.code);
+      }
+      break;
+    } else if (action === "retry") {
+      console.log("Regenerating commit message...");
+      continue;
+    }
   }
 }
 
@@ -94,8 +112,7 @@ async function main() {
   const { model, intent, amend } = parseArgs();
   const diff = await getDiff();
   const prompt = buildPrompt(diff, intent);
-  const message = await runOllama(model, prompt);
-  printCommitMessage(message, amend);
+  await interactiveCommitFlow(model, prompt);
 }
 
 main();
