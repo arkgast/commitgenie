@@ -1,56 +1,7 @@
 #!/usr/bin/env -S deno run --allow-run --allow-read
 
 import { Select } from "@cliffy/prompt";
-
-const DEFAULT_MODEL = "qwen3:1.7b";
-
-const PROMPT_TEMPLATE = `You are an expert software engineer and commit message specialist.
-
-Your task is to write a concise, lowercase, present-tense commit message based on:
-1. A provided git diff
-2. An explicit intent that describes the purpose of the change
-
-Guidelines:
-- Use the "Conventional Commits" format with types like: feat, fix, refactor, docs, style, chore, test, perf, ci, build.
-- Make the message informative but no longer than 81 characters.
-- Avoid capital letters, ending periods, or unnecessary words.
-
-Examples:
-- feat: add user authentication hook
-- fix: correct null pointer dereference in user parser
-- refactor: extract response builder into utility module
-
-Diff:
-{diff}
-
-Intent:
-{intent}
-
-Commit message:`;
-
-function parseArgs(): { model: string; intent: string; amend: boolean } {
-  const args = new Map<string, string>();
-  for (let i = 0; i < Deno.args.length; i++) {
-    if (Deno.args[i].startsWith("--")) {
-      const key = Deno.args[i].substring(2);
-      const val = Deno.args[i + 1];
-      args.set(key, val);
-      i++;
-    }
-  }
-  const model = args.get("model") || DEFAULT_MODEL;
-  const intent = args.get("intent") || "";
-  const amendStr = args.get("amend") || "";
-  const amend = amendStr.toLowerCase() === "true";
-
-  if (!intent) {
-    console.error(
-      "Error: --intent is required (initial commit message intent)",
-    );
-    Deno.exit(1);
-  }
-  return { model, intent, amend };
-}
+import { loadConfig, parseArgs } from "./config.ts";
 
 async function getDiff(): Promise<string> {
   const proc = new Deno.Command("git", {
@@ -61,8 +12,12 @@ async function getDiff(): Promise<string> {
   return new TextDecoder().decode(stdout);
 }
 
-function buildPrompt(diff: string, intent: string): string {
-  return PROMPT_TEMPLATE.replace("{diff}", diff).replace("{intent}", intent);
+function buildPrompt(
+  promptTemplate: string,
+  diff: string,
+  intent: string,
+): string {
+  return promptTemplate.replace("{diff}", diff).replace("{intent}", intent);
 }
 
 async function runOllama(model: string, prompt: string): Promise<string> {
@@ -115,9 +70,10 @@ async function interactiveCommitFlow(
 }
 
 async function main() {
-  const { model, intent, amend } = parseArgs();
+  const config = await loadConfig();
+  const { model, promptTemplate, intent, amend } = parseArgs(config);
   const diff = await getDiff();
-  const prompt = buildPrompt(diff, intent);
+  const prompt = buildPrompt(promptTemplate, diff, intent);
   await interactiveCommitFlow(model, prompt, amend);
 }
 

@@ -7,11 +7,15 @@
     "jsr:@cliffy/prompt@^1.0.0-rc.8": "1.0.0-rc.8",
     "jsr:@std/assert@1": "1.0.13",
     "jsr:@std/assert@~1.0.6": "1.0.13",
+    "jsr:@std/collections@^1.1.1": "1.1.2",
     "jsr:@std/encoding@~1.0.5": "1.0.10",
     "jsr:@std/fmt@~1.0.2": "1.0.8",
     "jsr:@std/internal@^1.0.6": "1.0.9",
+    "jsr:@std/internal@^1.0.9": "1.0.9",
+    "jsr:@std/path@^1.1.1": "1.1.1",
     "jsr:@std/path@~1.0.6": "1.0.9",
-    "jsr:@std/text@~1.0.7": "1.0.15"
+    "jsr:@std/text@~1.0.7": "1.0.15",
+    "jsr:@std/toml@^1.0.8": "1.0.8"
   },
   "jsr": {
     "@cliffy/ansi@1.0.0-rc.8": {
@@ -35,15 +39,18 @@
         "jsr:@cliffy/keycode",
         "jsr:@std/assert@~1.0.6",
         "jsr:@std/fmt",
-        "jsr:@std/path",
+        "jsr:@std/path@~1.0.6",
         "jsr:@std/text"
       ]
     },
     "@std/assert@1.0.13": {
       "integrity": "ae0d31e41919b12c656c742b22522c32fb26ed0cba32975cb0de2a273cb68b29",
       "dependencies": [
-        "jsr:@std/internal"
+        "jsr:@std/internal@^1.0.6"
       ]
+    },
+    "@std/collections@1.1.2": {
+      "integrity": "f1685dd45c3ec27c39d0e8a642ccf810f391ec8a6cb5e7355926e6dacc64c43e"
     },
     "@std/encoding@1.0.10": {
       "integrity": "8783c6384a2d13abd5e9e87a7ae0520a30e9f56aeeaa3bdf910a3eaaf5c811a1"
@@ -57,14 +64,28 @@
     "@std/path@1.0.9": {
       "integrity": "260a49f11edd3db93dd38350bf9cd1b4d1366afa98e81b86167b4e3dd750129e"
     },
+    "@std/path@1.1.1": {
+      "integrity": "fe00026bd3a7e6a27f73709b83c607798be40e20c81dde655ce34052fd82ec76",
+      "dependencies": [
+        "jsr:@std/internal@^1.0.9"
+      ]
+    },
     "@std/text@1.0.15": {
       "integrity": "91f5cc1e12779a3d95f1be34e763f9c28a75a078b7360e6fcaef0d8d9b1e3e7f"
+    },
+    "@std/toml@1.0.8": {
+      "integrity": "eb8ae76b4cc1c6c13f2a91123675823adbec2380de75cd3748c628960d952164",
+      "dependencies": [
+        "jsr:@std/collections"
+      ]
     }
   },
   "workspace": {
     "dependencies": [
       "jsr:@cliffy/prompt@^1.0.0-rc.8",
-      "jsr:@std/assert@1"
+      "jsr:@std/assert@1",
+      "jsr:@std/path@^1.1.1",
+      "jsr:@std/toml@^1.0.8"
     ]
   }
 }
