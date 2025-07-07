@@ -2,8 +2,7 @@
 
 import { Select } from "@cliffy/prompt";
 
-// const DEFAULT_MODEL = "deepseek-coder:33b";
-const DEFAULT_MODEL = "qwen2.5-coder:14b";
+const DEFAULT_MODEL = "qwen3:1.7b";
 
 const PROMPT_TEMPLATE = `You are an expert software engineer and commit message specialist.
 
