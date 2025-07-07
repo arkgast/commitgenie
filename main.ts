@@ -26,8 +26,6 @@ Intent:
 
 Commit message:`;
 
-/**
- */
 function parseArgs(): { model: string; intent: string } {
   const args = new Map<string, string>();
   for (let i = 0; i < Deno.args.length; i++) {
@@ -40,17 +38,20 @@ function parseArgs(): { model: string; intent: string } {
   }
   const model = args.get("model") || DEFAULT_MODEL;
   const intent = args.get("intent") || "";
+  const amendStr = args.get("amend");
+  const amend = amendStr && amendStr.toLowerCase() === "true";
+
   if (!intent) {
     console.error(
       "Error: --intent is required (initial commit message intent)",
     );
     Deno.exit(1);
   }
-  return { model, intent };
+  return { model, intent, amend };
 }
 
 async function getDiff(): Promise<string> {
-  const proc = Deno.run({ cmd: ["git", "diff"], stdout: "piped" });
+  const proc = Deno.run({ cmd: ["git", "diff", "--staged"], stdout: "piped" });
   const raw = await proc.output();
   await proc.status();
   return new TextDecoder().decode(raw);
@@ -90,11 +91,11 @@ async function copyToClipboard(text: string): Promise<void> {
 }
 
 async function main() {
-  const { model, intent } = parseArgs();
+  const { model, intent, amend } = parseArgs();
   const diff = await getDiff();
   const prompt = buildPrompt(diff, intent);
   const message = await runOllama(model, prompt);
-  await copyToClipboard(message);
+  printCommitMessage(message, amend);
 }
 
 main();
