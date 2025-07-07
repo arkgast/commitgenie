@@ -67,7 +67,7 @@ function buildPrompt(diff: string, intent: string): string {
 
 async function runOllama(model: string, prompt: string): Promise<string> {
   const proc = new Deno.Command("ollama", {
-    args: ["run", model, prompt],
+    args: ["run", model, prompt, "--think=false"],
     stdout: "piped",
     stderr: "inherit",
   });
