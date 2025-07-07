@@ -2,7 +2,8 @@
 
 import { Select } from "@cliffy/prompt";
 
-const DEFAULT_MODEL = "deepseek-coder:33b";
+// const DEFAULT_MODEL = "deepseek-coder:33b";
+const DEFAULT_MODEL = "qwen2.5-coder:14b";
 
 const PROMPT_TEMPLATE = `You are an expert software engineer and commit message specialist.
 
@@ -28,7 +29,7 @@ Intent:
 
 Commit message:`;
 
-function parseArgs(): { model: string; intent: string } {
+function parseArgs(): { model: string; intent: string; amend: boolean } {
   const args = new Map<string, string>();
   for (let i = 0; i < Deno.args.length; i++) {
     if (Deno.args[i].startsWith("--")) {
@@ -40,8 +41,8 @@ function parseArgs(): { model: string; intent: string } {
   }
   const model = args.get("model") || DEFAULT_MODEL;
   const intent = args.get("intent") || "";
-  const amendStr = args.get("amend");
-  const amend = amendStr && amendStr.toLowerCase() === "true";
+  const amendStr = args.get("amend") || "";
+  const amend = amendStr.toLowerCase() === "true";
 
   if (!intent) {
     console.error(
@@ -79,7 +80,11 @@ async function runOllama(model: string, prompt: string): Promise<string> {
   return new TextDecoder().decode(stdout).trim();
 }
 
-async function interactiveCommitFlow(model: string, promptText: string) {
+async function interactiveCommitFlow(
+  model: string,
+  promptText: string,
+  amend: boolean,
+) {
   while (true) {
     const message = await runOllama(model, promptText);
     console.log(`\n💡 Generated commit message:\n${message}\n`);
@@ -91,8 +96,9 @@ async function interactiveCommitFlow(model: string, promptText: string) {
 
     if (action === "commit") {
       console.log(`\nExecuting: git commit -m "${message}"\n`);
+      const commitFlag = amend ? "-am" : "-m";
       const proc = new Deno.Command("git", {
-        args: ["git", "commit", "-m", message],
+        args: ["commit", commitFlag, message],
         stdout: "inherit",
         stderr: "inherit",
       });
@@ -113,7 +119,7 @@ async function main() {
   const { model, intent, amend } = parseArgs();
   const diff = await getDiff();
   const prompt = buildPrompt(diff, intent);
-  await interactiveCommitFlow(model, prompt);
+  await interactiveCommitFlow(model, prompt, amend);
 }
 
 main();
