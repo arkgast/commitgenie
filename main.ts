@@ -2,11 +2,21 @@
 
 const DEFAULT_MODEL = "deepseek-coder:33b";
 
-const PROMPT_TEMPLATE = `You are an expert software engineer.
-Given the following git diff and the initial intent for a commit message,
-generate a concise, clear, lowercase, less than 81 words and descriptive commit message in present tense.
+const PROMPT_TEMPLATE = `You are an expert software engineer and commit message specialist.
 
-Take into account that the commit message must be a "Semantic commit message".
+Your task is to write a concise, lowercase, present-tense commit message based on:
+1. A provided git diff
+2. An explicit intent that describes the purpose of the change
+
+Guidelines:
+- Use the "Conventional Commits" format with types like: feat, fix, refactor, docs, style, chore, test, perf, ci, build.
+- Make the message informative but no longer than 81 characters.
+- Avoid capital letters, ending periods, or unnecessary words.
+
+Examples:
+- feat: add user authentication hook
+- fix: correct null pointer dereference in user parser
+- refactor: extract response builder into utility module
 
 Diff:
 {diff}
