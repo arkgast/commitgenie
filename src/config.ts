@@ -1,12 +1,15 @@
 import { parse } from "@std/toml";
 import { join } from "@std/path";
 
-const CONFIG_PATH = join(
-  Deno.env.get("HOME") || "",
-  ".config",
-  "commitgenie",
-  "config.toml",
-);
+const homeDir = Deno.env.get("HOME") ?? Deno.env.get("USERPROFILE");
+if (!homeDir) {
+  console.error(
+    "Error: Could not determine the user's home directory. Please ensure the $HOME (or %USERPROFILE% on Windows) environment variable is set.",
+  );
+  Deno.exit(1);
+}
+
+const CONFIG_PATH = join(homeDir, ".config", "commitgenie", "config.toml");
 
 export async function loadConfig(): Promise<Record<string, unknown>> {
   try {
