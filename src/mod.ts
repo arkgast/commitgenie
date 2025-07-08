@@ -1,7 +1,7 @@
 #!/usr/bin/env -S deno run --allow-run --allow-read
 
 import { Select } from "@cliffy/prompt";
-import { loadConfig, parseArgs } from "./config.ts";
+import { initDefaultConfig, loadConfig, parseArgs } from "./config.ts";
 
 async function getDiff(): Promise<string> {
   const proc = new Deno.Command("git", {
@@ -70,6 +70,11 @@ async function interactiveCommitFlow(
 }
 
 async function main() {
+  if (Deno.args.includes("--init")) {
+    await initDefaultConfig();
+    Deno.exit(0);
+  }
+
   const config = await loadConfig();
   const { model, promptTemplate, intent, amend } = parseArgs(config);
   const diff = await getDiff();
